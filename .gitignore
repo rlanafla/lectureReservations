@@ -1,0 +1,6 @@
+# .gitignore
+/backend/target/
+/backend/.idea/
+/frontend/front/node_modules/
+/frontend/front/build/
+/frontend/.idea/
