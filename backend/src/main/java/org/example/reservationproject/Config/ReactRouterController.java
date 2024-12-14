@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class ReactRouterController {
-    @GetMapping(value = {"/", "/listforelicemanager", "/listforelicemanager/calender"})
+    @GetMapping(value = {"/", "/listforelicemanager", "/listforelicemanagercalender"})
     public String forward() {
         return "forward:/index.html";
     }
