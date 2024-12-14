@@ -7,8 +7,13 @@ import {
     TextField, 
     Typography, 
     FormControl, 
-    Alert
+    Alert, 
+    Dialog, 
+    DialogActions, 
+    DialogContent, 
+    DialogTitle
 } from '@mui/material';
+import MainSide from './mainSide';
 
 const ReservationManagement = () => {
     const [formData, setFormData] = useState({
@@ -22,6 +27,11 @@ const ReservationManagement = () => {
         type: 'success'
     });
     const [reservedDates, setReservedDates] = useState([]); // 예약된 날짜와 시간 정보를 저장할 상태
+    const [openDialog, setOpenDialog] = useState(false); // Dialog 열기 상태
+    const [dialogMessage, setDialogMessage] = useState(''); // Dialog에 표시할 메시지
+    const [openResultDialog, setOpenResultDialog] = useState(false);
+
+
 
     useEffect(() => {
         // 예약 데이터를 서버에서 가져옵니다
@@ -56,27 +66,32 @@ const ReservationManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setOpenDialog(true);
+    };
+
+    const handleConfirm = async (e) => {
+        e.preventDefault();
+        setOpenResultDialog(true);
         try {
             const response = await axios.post('http://localhost:8080/api/reservations', formData);
-            setMessage({
-                text: '예약이 성공적으로 완료되었습니다.',
-                type: 'success'
-            });
-            // 폼 초기화
-            setFormData({
-                name: '',
-                phoneNumber: '',
-                reservationDate: '',
-                timeSlot: 'AM'
-            });
+            setDialogMessage('예약이 성공적으로 완료되었습니다.'); // 예약 성공 메시지 설정
         } catch (error) {
             const errorMessage = error.response?.data || '예약에 실패했습니다.';
-            setMessage({
-                text: errorMessage,
-                type: 'error'
-            });
+            setDialogMessage(errorMessage); // 예약 실패 메시지 설정
         }
+        setOpenDialog(false);
+        setOpenResultDialog(true);
     };
+    
+
+    const handleCancel = () => {
+        setOpenDialog(false); // Dialog 닫기
+    };
+
+    const handleResultDialogClose = () => {
+        setOpenResultDialog(false);
+    }
+
 
     const getTodayDate = () => {
         const today = new Date();
@@ -86,16 +101,18 @@ const ReservationManagement = () => {
         return `${yyyy}-${mm}-${dd}`;
     };
 
-    // 예약이 이미 되어있는 날짜와 시간대인지 확인하는 함수
     const isReserved = (date, timeSlot) => {
         return reservedDates.some(reservation => reservation.reservationDate === date && reservation.timeSlot === timeSlot);
     };
 
     return (
-        <Container maxWidth="lg">
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+        <Container maxWidth="lg" sx={{display: 'flex', flexDirection: 'row', height: '100vh'}}>
+            <Box sx = {{display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', alignContent: 'center', height: '100vh'}}>
+                <MainSide />
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignContent: 'center', flex: 1}}>
                 <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-                    새 예약 생성
+                    강사 예약
                 </Typography>
 
                 <Box 
@@ -124,6 +141,12 @@ const ReservationManagement = () => {
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleChange}
+                        inputProps={{
+                            pattern: "^01[0-9]-[0-9]{3,4}-[0-9]{4}$",
+                            maxLength: 13
+                        }}
+                        helperText="예: 010-1234-5678"
+                        error={formData.phoneNumber && !/01[0-9]-[0-9]{3,4}-[0-9]{4}/.test(formData.phoneNumber)}
                     />
                     <TextField
                         required
@@ -176,8 +199,14 @@ const ReservationManagement = () => {
                         type="submit" 
                         variant="contained" 
                         color="primary"
+                        disabled={
+                            !formData.name || 
+                            !formData.phoneNumber || 
+                            !formData.reservationDate || 
+                            isReserved(formData.reservationDate, formData.timeSlot)
+                        }
                     >
-                        생성
+                        예약
                     </Button>
                 </Box>
 
@@ -189,6 +218,47 @@ const ReservationManagement = () => {
                     </Box>
                 )}
             </Box>
+
+            <Dialog open={openDialog} onClose={handleCancel}>
+                <DialogTitle>예약 확인</DialogTitle>
+                <DialogContent sx={{width : '400px', justifyContent: 'center', alignContent: 'center'}}>
+                    <Box sx={{ mb: 1 }}>
+                        <Typography sx={{ fontWeight: 'bold' }}>이름:</Typography> {formData.name}
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                        <Typography sx={{ fontWeight: 'bold' }}>전화번호:</Typography> {formData.phoneNumber}
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                        <Typography sx={{ fontWeight: 'bold' }}>날짜:</Typography> {formData.reservationDate}
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                        <Typography sx={{ fontWeight: 'bold' }}>시간:</Typography> {formData.timeSlot === 'AM' ? '오전' : '오후'}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancel} color="primary">
+                        취소
+                    </Button>
+                    <Button onClick={handleConfirm} color="primary">
+                        확인
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={openResultDialog} onClose={handleResultDialogClose}>
+                <DialogTitle>예약 결과</DialogTitle>
+                <DialogContent>
+                    <Typography>{dialogMessage}</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleResultDialogClose} color="primary">
+                        닫기
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+
+            
         </Container>
     );
 };

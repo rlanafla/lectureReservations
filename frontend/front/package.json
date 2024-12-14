@@ -11,7 +11,10 @@
     "@mui/system": "^6.2.0",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
+    "http-proxy-middleware": "^3.0.3",
+    "moment": "^2.x.x",
     "react": "^19.0.0",
+    "react-calendar": "^5.1.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.2",
     "react-scripts": "5.0.1"
