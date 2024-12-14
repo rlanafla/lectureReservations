@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, BrowserRouter } from 'react-router-dom';
 import { 
     AppBar, 
     Toolbar, 
@@ -16,14 +16,14 @@ import ReservationCalendar from './reservationCalender';
 
 function App() {
     return (
-        <Router>
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
             <CssBaseline />
                 <Routes>
                     <Route path="/" element={<ReservationManagement />} />
                     <Route path="/listforelicemanager" element={<ReservationList />} />
                     <Route path="/listforelicemanager/calender" element={<ReservationCalendar />} />
                 </Routes>
-        </Router>
+        </BrowserRouter>
     );
 }
 
