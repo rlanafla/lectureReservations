@@ -55,7 +55,7 @@ const ReservationList = () => {
 
     const handleDeleteConfirm = async () => {
         try {
-            await axios.delete(`http://localhost:8080/api/reservations/${deleteConfirmation.reservationId}`);
+            await axios.delete(`http://54.180.163.230:8080/api/reservations/${deleteConfirmation.reservationId}`);
             
             setMessage({
                 text: '예약이 성공적으로 삭제되었습니다.',

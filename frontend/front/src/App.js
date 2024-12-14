@@ -21,7 +21,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<ReservationManagement />} />
                     <Route path="/listforelicemanager" element={<ReservationList />} />
-                    <Route path="/listforelicemanager/calender" element={<ReservationCalendar />} />
+                    <Route path="/listforelicemanagercalender" element={<ReservationCalendar />} />
                 </Routes>
         </BrowserRouter>
     );
