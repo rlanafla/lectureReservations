@@ -12,7 +12,7 @@ import {
 // Import the components
 import ReservationManagement from './reservationManagement';
 import ReservationList from './reservationList';
-import ReservationCalendar from './reservationCalender';
+import ReservationCalender from './reservationCalender';
 
 function App() {
     return (
@@ -21,7 +21,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<ReservationManagement />} />
                     <Route path="/listforelicemanager" element={<ReservationList />} />
-                    <Route path="/listforelicemanagercalender" element={<ReservationCalendar />} />
+                    <Route path="/listforelicemanagercalender" element={<ReservationCalender />} />
                 </Routes>
         </BrowserRouter>
     );
