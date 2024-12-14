@@ -1,10 +1,7 @@
 package org.example.reservationproject.Config;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.example.reservationproject.Dto.ReservationDTO;
-import org.example.reservationproject.Service.ReservationService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class ReactRoutingController {
