@@ -36,7 +36,7 @@ const ReservationList = () => {
 
     const fetchReservations = async () => {
         try {
-            const response = await axios.get('http://54.180.163.230:8080/api/reservations');
+            const response = await axios.get('http://54.180.163.230/api/reservations');
             setReservations(response.data);
         } catch (error) {
             setMessage({
@@ -55,7 +55,7 @@ const ReservationList = () => {
 
     const handleDeleteConfirm = async () => {
         try {
-            await axios.delete(`http://54.180.163.230:8080/api/reservations/${deleteConfirmation.reservationId}`);
+            await axios.delete(`http://54.180.163.230/api/reservations/${deleteConfirmation.reservationId}`);
             
             setMessage({
                 text: '예약이 성공적으로 삭제되었습니다.',

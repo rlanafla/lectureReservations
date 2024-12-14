@@ -37,7 +37,7 @@ const ReservationManagement = () => {
         // 예약 데이터를 서버에서 가져옵니다
         const fetchReservations = async () => {
             try {
-                const response = await axios.get('http://54.180.163.230:8080/api/reservations');
+                const response = await axios.get('http://54.180.163.230/api/reservations');
                 if (Array.isArray(response.data)) {
                     setReservedDates(response.data); // 예약된 날짜와 시간 정보를 상태에 저장
                 }
@@ -73,7 +73,7 @@ const ReservationManagement = () => {
         e.preventDefault();
         setOpenResultDialog(true);
         try {
-            const response = await axios.post('http://54.180.163.230:8080/api/reservations', formData);
+            const response = await axios.post('http://54.180.163.230/api/reservations', formData);
             setDialogMessage('예약이 성공적으로 완료되었습니다.'); // 예약 성공 메시지 설정
         } catch (error) {
             const errorMessage = error.response?.data || '예약에 실패했습니다.';

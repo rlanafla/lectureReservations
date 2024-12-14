@@ -47,7 +47,7 @@ const ReservationCalendar = () => {
     
     const fetchReservations = async () => {
         try {
-            const response = await axios.get('http://54.180.163.230:8080/api/reservations');
+            const response = await axios.get('http://54.180.163.230/api/reservations');
             setReservations(response.data);
         } catch (error) {
             setMessage({
