@@ -16,7 +16,7 @@ import ReservationCalendar from './reservationCalender';
 
 function App() {
     return (
-        <BrowserRouter basename={process.env.PUBLIC_URL}>
+        <BrowserRouter basename="/">
             <CssBaseline />
                 <Routes>
                     <Route path="/" element={<ReservationManagement />} />
