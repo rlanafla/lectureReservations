@@ -117,6 +117,7 @@ const ReservationManagement = () => {
                         alignContent: 'center', 
                         height: '100vh',
                         bgcolor: '#7100ee',
+                        
                         margin: 0, 
                         padding: 0}}>
                 <Box sx = {{display: 'flex', justifyContent: 'center'}}>
