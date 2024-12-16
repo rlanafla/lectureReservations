@@ -99,7 +99,7 @@ const ReservationList = () => {
                 예약 목록
             </Typography>
 
-            <TableContainer component={Paper} sx={{ maxWidth: 800, width: '100%' }}>
+            <TableContainer component={Box} sx={{ maxWidth: 800, width: '100%' }}>
                 <Table>
                     <TableHead>
                         <TableRow>

@@ -13,7 +13,6 @@ import {
     DialogContent, 
     DialogTitle
 } from '@mui/material';
-import MainSide from './mainSide';
 
 const ReservationManagement = () => {
     const [formData, setFormData] = useState({
@@ -106,11 +105,36 @@ const ReservationManagement = () => {
     };
 
     return (
-        <Container maxWidth="lg" sx={{display: 'flex', flexDirection: 'row', height: '100vh'}}>
-            <Box sx = {{display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', alignContent: 'center', height: '100vh'}}>
-                <MainSide />
+        <Container maxWidth="false" sx={{ display: 'flex', 
+                                        flexDirection: 'row',
+                                        height: '100vh',
+                                        padding: 0,
+                                        margin: 0}}>
+            <Box sx = {{display: 'flex',
+                        flexDirection: 'column', 
+                        flex: 1, 
+                        justifyContent: 'center', 
+                        alignContent: 'center', 
+                        height: '100vh',
+                        bgcolor: '#7100ee',
+                        margin: 0, 
+                        padding: 0}}>
+                <Box sx = {{display: 'flex', justifyContent: 'center'}}>
+                <svg>
+                    <image href="/elice.svg" />
+                </svg>
+                </Box>
+
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignContent: 'center', flex: 1}}>
+            <Box sx={{ display: 'flex', 
+                        flexDirection: 'column', 
+                        height: '100vh', 
+                        justifyContent: 'center', 
+                        alignContent: 'center', 
+                        flex: 1,
+                        margin: 0,
+                        padding: 0}}>
+                <Box sx = {{marginX: '25%' }}>
                 <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
                     강사 예약
                 </Typography>
@@ -210,6 +234,8 @@ const ReservationManagement = () => {
                     </Button>
                 </Box>
 
+                </Box>
+                
                 {message.text && (
                     <Box sx={{ width: '100%', maxWidth: 500, mt: 2 }}>
                         <Alert severity={message.type}>

@@ -5,6 +5,7 @@ import {
     Toolbar, 
     Typography, 
     Button, 
+    Box,
     Container,
     CssBaseline
 } from '@mui/material';
@@ -13,17 +14,19 @@ import {
 import ReservationManagement from './reservationManagement';
 import ReservationList from './reservationList';
 import ReservationCalender from './reservationCalender';
+import './App.css';
 
 function App() {
     return (
-        <BrowserRouter basename="/">
-            <CssBaseline />
-                <Routes>
-                    <Route path="/" element={<ReservationManagement />} />
-                    <Route path="/listforelicemanager" element={<ReservationList />} />
-                    <Route path="/listforelicemanagercalender" element={<ReservationCalender />} />
-                </Routes>
-        </BrowserRouter>
+            <BrowserRouter basename="/">
+                <CssBaseline/>
+                    <Routes>
+                        <Route path="/" element={<ReservationManagement />} />
+                        <Route path="/listforelicemanager" element={<ReservationList />} />
+                        <Route path="/listforelicemanagercalender" element={<ReservationCalender />} />
+                    </Routes>
+            </BrowserRouter>
+
     );
 }
 
