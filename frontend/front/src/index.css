@@ -18,3 +18,10 @@ code {
   padding: 0;
   width: 100%;
 }
+
+@media (min-width: 600px) {
+  .css-1vu4qha-MuiContainer-root {
+      padding-left: 0 !important;
+      padding-right: 100 !important;
+  }
+}

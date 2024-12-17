@@ -1,47 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-    Box, 
-    Button, 
-    Container, 
-    TextField, 
-    Typography, 
-    FormControl, 
-    Alert, 
-    Dialog, 
-    DialogActions, 
-    DialogContent, 
-    DialogTitle
-} from '@mui/material';
+import { Box, Button, Container, TextField, Typography, FormControl, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, InputLabel } from '@mui/material';
+import ReservationCalendar from './reservationCalender';
 
 const ReservationManagement = () => {
     const [formData, setFormData] = useState({
         name: '',
         phoneNumber: '',
         reservationDate: '',
-        timeSlot: 'AM'
+        timeSlot: 'AM',
+        location: ''
     });
-    const [message, setMessage] = useState({
-        text: '',
-        type: 'success'
-    });
-    const [reservedDates, setReservedDates] = useState([]); // 예약된 날짜와 시간 정보를 저장할 상태
-    const [openDialog, setOpenDialog] = useState(false); // Dialog 열기 상태
-    const [dialogMessage, setDialogMessage] = useState(''); // Dialog에 표시할 메시지
+    const [reservedDates, setReservedDates] = useState([]);
+    const [locations, setLocations] = useState([]);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [dialogMessage, setDialogMessage] = useState('');
     const [openResultDialog, setOpenResultDialog] = useState(false);
 
-
-
     useEffect(() => {
-        // 예약 데이터를 서버에서 가져옵니다
         const fetchReservations = async () => {
             try {
-                const response = await axios.get('http://54.180.163.230/api/reservations');
+                const response = await axios.get('http://localhost:80/api/reservations');
                 if (Array.isArray(response.data)) {
-                    setReservedDates(response.data); // 예약된 날짜와 시간 정보를 상태에 저장
+                    setReservedDates(response.data);
+
+                    // Extract unique locations from reservation data
+                    const locationsSet = new Set(response.data.map(reservation => reservation.location));
+                    setLocations([...locationsSet]);
                 }
             } catch (error) {
-                console.error('예약 정보를 가져오는 데 실패했습니다.', error);
+                console.error('Failed to fetch reservation data.', error);
             }
         };
 
@@ -63,229 +51,251 @@ const ReservationManagement = () => {
         }));
     };
 
+    const handleLocationChange = (event) => {
+        const selectedLocation = event.target.value;
+        setFormData(prev => ({
+            ...prev,
+            location: selectedLocation,
+            reservationDate: '',
+            timeSlot: 'AM'
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validation for reservation limits
+        if (isDuplicateReservation()) {
+            setDialogMessage('같은 날짜에 두 번 예약할 수 없습니다.');
+            setOpenResultDialog(true);
+            return;
+        }
+
+        if (hasReachedReservationLimit()) {
+            setDialogMessage('세 번까지만 예약할 수 있습니다.');
+            setOpenResultDialog(true);
+            return;
+        }
+
         setOpenDialog(true);
     };
 
     const handleConfirm = async (e) => {
         e.preventDefault();
-        setOpenResultDialog(true);
         try {
-            const response = await axios.post('http://54.180.163.230/api/reservations', formData);
-            setDialogMessage('예약이 성공적으로 완료되었습니다.'); // 예약 성공 메시지 설정
+            const response = await axios.post('http://localhost:80/api/reservations', formData);
+            setDialogMessage('예약이 성공하였습니다.');
+
+            // Update local reserved dates to reflect new reservation
+            setReservedDates(prev => [...prev, formData]);
         } catch (error) {
-            const errorMessage = error.response?.data || '예약에 실패했습니다.';
-            setDialogMessage(errorMessage); // 예약 실패 메시지 설정
+            const errorMessage = error.response?.data || '예약이 실패하였습니다.';
+            setDialogMessage(errorMessage);
         }
         setOpenDialog(false);
         setOpenResultDialog(true);
     };
-    
 
     const handleCancel = () => {
-        setOpenDialog(false); // Dialog 닫기
+        setOpenDialog(false);
     };
 
     const handleResultDialogClose = () => {
         setOpenResultDialog(false);
-    }
-
-
-    const getTodayDate = () => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
+        // Reset form after closing result dialog
+        setFormData({
+            name: '',
+            phoneNumber: '',
+            reservationDate: '',
+            timeSlot: 'AM',
+            location: ''
+        });
     };
 
-    const isReserved = (date, timeSlot) => {
-        return reservedDates.some(reservation => reservation.reservationDate === date && reservation.timeSlot === timeSlot);
+    // Check if the given date, time, and location are already reserved
+    const isReserved = (date, timeSlot, location) => {
+        return reservedDates.some(reservation =>
+            reservation.reservationDate === date &&
+            reservation.timeSlot === timeSlot &&
+            reservation.location === location
+        );
+    };
+
+    const handleDateChange = (date) => {
+        setFormData(prev => ({
+            ...prev,
+            reservationDate: date,
+            timeSlot: 'AM' // Reset to AM when date changes
+        }));
+    };
+
+    // Form validation function
+    const isFormValid = () => {
+        return (
+            formData.name.trim() !== '' &&
+            /01[0-9]-[0-9]{3,4}-[0-9]{4}/.test(formData.phoneNumber) &&
+            formData.location !== '' &&
+            formData.reservationDate !== ''
+        );
+    };
+
+    // Check if the user is attempting to reserve both AM and PM on the same date
+    const isDuplicateReservation = () => {
+        return reservedDates.some(reservation =>
+            reservation.reservationDate === formData.reservationDate &&
+            reservation.name === formData.name &&
+            reservation.phoneNumber === formData.phoneNumber &&
+            reservation.timeSlot !== formData.timeSlot
+        );
+    };
+
+    // Check if the user has already made 3 reservations
+    const hasReachedReservationLimit = () => {
+        const userReservations = reservedDates.filter(reservation =>
+            reservation.name === formData.name &&
+            reservation.phoneNumber === formData.phoneNumber
+        );
+        return userReservations.length >= 3;
     };
 
     return (
-        <Container maxWidth="false" sx={{ display: 'flex', 
-                                        flexDirection: 'row',
-                                        height: '100vh',
-                                        padding: 0,
-                                        margin: 0}}>
-            <Box sx = {{display: 'flex',
-                        flexDirection: 'column', 
-                        flex: 1, 
-                        justifyContent: 'center', 
-                        alignContent: 'center', 
-                        height: '100vh',
-                        bgcolor: '#7100ee',
-                        
-                        margin: 0, 
-                        padding: 0}}>
-                <Box sx = {{display: 'flex', justifyContent: 'center'}}>
-                <svg>
-                    <image href="/elice.svg" />
-                </svg>
+        <Container maxWidth="false" sx={{ display: 'flex', flexDirection: 'row', height: '100vh', padding: 0, margin: 0 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', alignContent: 'center', height: '100vh', bgcolor: '#7100ee' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <svg>
+                        <image href="/elice.svg" />
+                    </svg>
                 </Box>
-
             </Box>
-            <Box sx={{ display: 'flex', 
-                        flexDirection: 'column', 
-                        height: '100vh', 
-                        justifyContent: 'center', 
-                        alignContent: 'center', 
-                        flex: 1,
-                        margin: 0,
-                        padding: 0}}>
-                <Box sx = {{marginX: '25%' }}>
-                <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-                    강사 예약
-                </Typography>
-
-                <Box 
-                    component="form" 
-                    onSubmit={handleSubmit} 
-                    sx={{ 
-                        width: '100%', 
-                        maxWidth: 500, 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        gap: 2 
-                    }}
-                >
-                    <TextField
-                        required
-                        fullWidth
-                        label="이름"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                    />
-                    <TextField
-                        required
-                        fullWidth
-                        label="전화번호"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
-                        onChange={handleChange}
-                        inputProps={{
-                            pattern: "^01[0-9]-[0-9]{3,4}-[0-9]{4}$",
-                            maxLength: 13
-                        }}
-                        helperText="예: 010-1234-5678"
-                        error={formData.phoneNumber && !/01[0-9]-[0-9]{3,4}-[0-9]{4}/.test(formData.phoneNumber)}
-                    />
-                    <TextField
-                        required
-                        fullWidth
-                        label="날짜"
-                        type="date"
-                        name="reservationDate"
-                        InputLabelProps={{ shrink: true }}
-                        value={formData.reservationDate}
-                        onChange={handleChange}
-                        inputProps={{
-                            min: getTodayDate() // 오늘 날짜 이전 선택 못 하게 설정
-                        }}
-                    />
-                    <FormControl fullWidth>
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignContent: 'center', flex: 2, margin: 0, padding: 0 }}>
+                <Box sx={{ marginX: '25%' }}>
+                    <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', maxWidth: 500, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <TextField
+                            required
+                            fullWidth
+                            label="Name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                        />
+                        <TextField
+                            required
+                            fullWidth
+                            label="Phone Number"
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleChange}
+                            inputProps={{ pattern: "^01[0-9]-[0-9]{3,4}-[0-9]{4}$", maxLength: 13 }}
+                            helperText="예시: 010-1234-5678"
+                            error={formData.phoneNumber && !/01[0-9]-[0-9]{3,4}-[0-9]{4}/.test(formData.phoneNumber)}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel>Location</InputLabel>
+                            <Select
+                                label="Location"
+                                name="location"
+                                value={formData.location}
+                                onChange={handleLocationChange}
+                                labelId="location-select-label"
+                            >
+                                {locations.map(location => (
+                                    <MenuItem key={location} value={location}>{location}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <ReservationCalendar 
+                            onDateChange={handleDateChange} 
+                            reservedDates={reservedDates} 
+                            location={formData.location} 
+                        />
+                        <FormControl fullWidth>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                                {(!formData.location || !formData.reservationDate || isReserved(formData.reservationDate, 'AM', formData.location)) ? null : (
+                                    <Button
+                                        onClick={() => handleTimeSlotChange('AM')}
+                                        sx={{
+                                            borderRadius: '100px',
+                                            border: '1px solid #7100ee',
+                                            backgroundColor: formData.timeSlot === 'AM' ? '#7100ee' : 'transparent',
+                                            color: formData.timeSlot === 'AM' ? 'white' : '#7100ee',
+                                            '&:hover': {
+                                                color: 'white',
+                                                backgroundColor: '#7100ee'
+                                            }
+                                        }}
+                                    >
+                                        오전
+                                    </Button>
+                                )}
+                                {(!formData.location || !formData.reservationDate || isReserved(formData.reservationDate, 'PM', formData.location)) ? null : (
+                                    <Button
+                                        onClick={() => handleTimeSlotChange('PM')}
+                                        sx={{
+                                            borderRadius: '100px',
+                                            border: '1px solid #7100ee',
+                                            backgroundColor: formData.timeSlot === 'PM' ? '#7100ee' : 'transparent',
+                                            color: formData.timeSlot === 'PM' ? 'white' : '#7100ee',
+                                            '&:hover': {
+                                                color: 'white',
+                                                backgroundColor: '#7100ee'
+                                            }
+                                        }}
+                                    >
+                                        오후
+                                    </Button>
+                                )}
+                            </Box>
+                        </FormControl>
+                        {isFormValid() ? (
                             <Button
-                                variant={formData.timeSlot === 'AM' ? 'contained' : 'outlined'}
-                                color="primary"
-                                onClick={() => handleTimeSlotChange('AM')}
-                                disabled={isReserved(formData.reservationDate, 'AM')}
                                 sx={{
-                                    backgroundColor: formData.timeSlot === 'AM' ? '#1976d2' : 'transparent',
-                                    color: formData.timeSlot === 'AM' ? 'white' : 'inherit',
+                                    backgroundColor: '#7100ee',
+                                    borderRadius: '100px',
+                                    color: 'white',
                                     '&:hover': {
-                                        backgroundColor: formData.timeSlot === 'AM' ? '#1565c0' : '#e3f2fd'
+                                        backgroundColor: '#7100ee',
+                                        color: 'white'
                                     }
                                 }}
+                                type="submit"
                             >
-                                오전
+                                Reserve
                             </Button>
-                            <Button
-                                variant={formData.timeSlot === 'PM' ? 'contained' : 'outlined'}
-                                color="primary"
-                                onClick={() => handleTimeSlotChange('PM')}
-                                disabled={isReserved(formData.reservationDate, 'PM')}
-                                sx={{
-                                    backgroundColor: formData.timeSlot === 'PM' ? '#1976d2' : 'transparent',
-                                    color: formData.timeSlot === 'PM' ? 'white' : 'inherit',
-                                    '&:hover': {
-                                        backgroundColor: formData.timeSlot === 'PM' ? '#1565c0' : '#e3f2fd'
-                                    }
-                                }}
-                            >
-                                오후
-                            </Button>
-                        </Box>
-                    </FormControl>
-                    <Button 
-                        type="submit" 
-                        variant="contained" 
-                        color="primary"
-                        disabled={
-                            !formData.name || 
-                            !formData.phoneNumber || 
-                            !formData.reservationDate || 
-                            isReserved(formData.reservationDate, formData.timeSlot)
-                        }
-                    >
-                        예약
-                    </Button>
-                </Box>
-
-                </Box>
-                
-                {message.text && (
-                    <Box sx={{ width: '100%', maxWidth: 500, mt: 2 }}>
-                        <Alert severity={message.type}>
-                            {message.text}
-                        </Alert>
+                        ) : null}
                     </Box>
-                )}
+                </Box>
             </Box>
-
             <Dialog open={openDialog} onClose={handleCancel}>
                 <DialogTitle>예약 확인</DialogTitle>
-                <DialogContent sx={{width : '400px', justifyContent: 'center', alignContent: 'center'}}>
-                    <Box sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 'bold' }}>이름:</Typography> {formData.name}
-                    </Box>
-                    <Box sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 'bold' }}>전화번호:</Typography> {formData.phoneNumber}
-                    </Box>
-                    <Box sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 'bold' }}>날짜:</Typography> {formData.reservationDate}
-                    </Box>
-                    <Box sx={{ mb: 1 }}>
-                        <Typography sx={{ fontWeight: 'bold' }}>시간:</Typography> {formData.timeSlot === 'AM' ? '오전' : '오후'}
-                    </Box>
+                <DialogContent>
+                    <Typography variant="body1">
+                        Confirm with the following details:
+                        <br />
+                        이름: {formData.name}
+                        <br />
+                        전화번호: {formData.phoneNumber}
+                        <br />
+                        장소: {formData.location}
+                        <br />
+                        날짜: {formData.reservationDate}
+                        <br />
+                        시간: {formData.timeSlot === '오전' ? '오전' : '오후'}
+                    </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel} color="primary">
-                        취소
-                    </Button>
-                    <Button onClick={handleConfirm} color="primary">
-                        확인
-                    </Button>
+                    <Button onClick={handleCancel} color="primary">Cancel</Button>
+                    <Button onClick={handleConfirm} color="primary">Confirm</Button>
                 </DialogActions>
             </Dialog>
-
             <Dialog open={openResultDialog} onClose={handleResultDialogClose}>
                 <DialogTitle>예약 결과</DialogTitle>
                 <DialogContent>
-                    <Typography>{dialogMessage}</Typography>
+                    <Typography variant="body1">{dialogMessage}</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleResultDialogClose} color="primary">
-                        닫기
-                    </Button>
+                    <Button onClick={handleResultDialogClose} color="primary">Close</Button>
                 </DialogActions>
             </Dialog>
-
-
-            
         </Container>
     );
 };

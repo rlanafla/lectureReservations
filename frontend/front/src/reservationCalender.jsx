@@ -1,148 +1,120 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { 
-    Box, 
-    Typography, 
-    Paper, 
-    Alert, 
-    Button 
-} from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography } from '@mui/material';
 import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css'; // 캘린더 기본 스타일
 import moment from 'moment';
+import 'react-calendar/dist/Calendar.css';
+import './calenderStyle.css';
 
-const ReservationCalendar = () => {
-    const [reservations, setReservations] = useState([]);
+const ReservationCalendar = ({ onDateChange, reservedDates = [], location }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [dailyReservations, setDailyReservations] = useState([]);
-    const [message, setMessage] = useState({
-        text: '',
-        type: 'success'
-    });
-    const [newReservation, setNewReservation] = useState({
-        name: '',
-        phoneNumber: '',
-        timeSlot: '',
-    });
-    const [isValid, setIsValid] = useState(false);
 
-    useEffect(() => {
-        fetchReservations();
-    }, []);
+    // 장소 선택 여부 확인
+    const isLocationSelected = location && location.trim() !== '';
 
-    useEffect(() => {
-        fetchReservations();
-    }, []);
-
-    useEffect(() => {
-        filterReservationsByDate(selectedDate);
-    }, [reservations, selectedDate]);
-
-    useEffect(() => {
-        // 모든 필드가 채워져야 버튼 활성화
-        const { name, phoneNumber, timeSlot } = newReservation;
-        setIsValid(name.trim() && phoneNumber.trim() && timeSlot.trim());
-    }, [newReservation]);
-
-    
-    const fetchReservations = async () => {
-        try {
-            const response = await axios.get('http://54.180.163.230/api/reservations');
-            setReservations(response.data);
-        } catch (error) {
-            setMessage({
-                text: '예약 데이터를 불러오는 데 실패했습니다.',
-                type: 'error'
-            });
+    const getReservationStatus = (date) => {
+        // 장소 미선택 시 기본 상태 반환
+        if (!isLocationSelected) {
+            return {
+                morning: '',
+                afternoon: '',
+                isFullyBooked: true
+            };
         }
-    };
 
-    const filterReservationsByDate = (date) => {
         const formattedDate = moment(date).format('YYYY-MM-DD');
-        const filtered = reservations.filter(
-            (res) => res.reservationDate === formattedDate
+
+        // 특정 장소, 날짜의 모든 예약 필터링
+        const dayReservations = reservedDates.filter(
+            (res) => res.reservationDate === formattedDate && 
+                     res.location === location
         );
-        setDailyReservations(filtered);
+
+        // 오전, 오후 예약 상태 확인
+        const morningReservation = dayReservations.some(res => res.timeSlot === 'AM');
+        const afternoonReservation = dayReservations.some(res => res.timeSlot === 'PM');
+
+        return {
+            morning: morningReservation ? '불가능' : '가능',
+            afternoon: afternoonReservation ? '불가능' : '가능',
+            isFullyBooked: morningReservation && afternoonReservation
+        };
     };
 
-    const onDateChange = (date) => {
-        setSelectedDate(date);
+    const tileDisabled = ({ date, view }) => {
+        // 과거 날짜 비활성화
+        if (view === 'month' && date < new Date().setHours(0, 0, 0, 0)) {
+            return true;
+        }
+
+        // 주말 비활성화
+        if (view === 'month' && (date.getDay() === 0 || date.getDay() === 6)) {
+            return true;
+        }
+
+        // 장소 미선택 시 모든 날짜 비활성화
+        if (!isLocationSelected) {
+            return true;
+        }
+
+        // 완전히 예약된 날짜 비활성화
+        const { isFullyBooked } = getReservationStatus(date);
+        return isFullyBooked;
     };
+
+    // 장소 미선택 시 null 반환하여 캘린더 숨기기
+    if (!isLocationSelected) {
+        return (
+            <Box sx={{ 
+                textAlign: 'center', 
+                color: 'red', 
+                marginBottom: 2 
+            }}>
+                <Typography variant="body1">
+                    예약을 진행하려면 먼저 장소를 선택해주세요.
+                </Typography>
+            </Box>
+        );
+    }
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
-            {message.text && (
-                <Box sx={{ width: '100%', maxWidth: 800, mb: 2 }}>
-                    <Alert severity={message.type}>
-                        {message.text}
-                    </Alert>
-                </Box>
-            )}
-
-            <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-                예약 캘린더
-            </Typography>
-
-            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center'}}>
                 <Calendar
-                    onChange={onDateChange}
+                    onChange={(date) => {
+                        if (!tileDisabled({ date })) {
+                            setSelectedDate(date);
+                            onDateChange(moment(date).format('YYYY-MM-DD'));
+                        }
+                    }}
                     value={selectedDate}
-                    tileContent={({ date, view }) => {
-                        const formattedDate = moment(date).format('YYYY-MM-DD');
-                        const hasReservation = reservations.some(
-                            (res) => res.reservationDate === formattedDate
+                    tileContent={({ date }) => {
+                        const { morning, afternoon, isFullyBooked } = getReservationStatus(date);
+                        return (
+                            <div style={{ 
+                                fontSize: '0.8rem', 
+                                opacity: isFullyBooked ? 0.5 : 1 
+                            }}>
+                                <div style={{ 
+                                    color: morning === '불가능' ? 'red' : 'green',
+                                    fontWeight: morning === '불가능' ? 'bold' : 'normal'
+                                }}>
+                                    {morning}
+                                </div>
+                                <div style={{ 
+                                    color: afternoon === '불가능' ? 'red' : 'green',
+                                    fontWeight: afternoon === '불가능' ? 'bold' : 'normal'
+                                }}>
+                                    {afternoon}
+                                </div>
+                            </div>
                         );
-                        return hasReservation ? (
-                            <div style={{ color: 'red', fontSize: '0.8rem' }}>예약 있음</div>
-                        ) : null;
+                    }}
+                    tileDisabled={tileDisabled}
+                    tileClassName={({ date }) => {
+                        const { isFullyBooked } = getReservationStatus(date);
+                        return isFullyBooked ? 'fully-booked' : '';
                     }}
                 />
-                <Paper
-                    elevation={3}
-                    sx={{
-                        padding: 2,
-                        width: 400,
-                        minHeight: 300,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 2,
-                    }}
-                >
-                    <Typography variant="h6">
-                        {moment(selectedDate).format('YYYY년 MM월 DD일')} 예약 목록
-                    </Typography>
-                    {dailyReservations.length > 0 ? (
-                        dailyReservations.map((reservation) => (
-                            <Box
-                                key={reservation.id}
-                                sx={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    width: '100%',
-                                    borderBottom: '1px solid #ddd',
-                                    padding: '8px 0',
-                                }}
-                            >
-                                <Typography>
-                                    {reservation.name} ({reservation.timeSlot})
-                                </Typography>
-                                <Button
-                                    variant="contained"
-                                    color="error"
-                                    size="small"
-                                    onClick={() => console.log('예약 삭제:', reservation.id)}
-                                >
-                                    삭제
-                                </Button>
-                            </Box>
-                        ))
-                    ) : (
-                        <Typography variant="body2" color="textSecondary">
-                            예약이 없습니다.
-                        </Typography>
-                    )}
-                </Paper>
             </Box>
         </Box>
     );

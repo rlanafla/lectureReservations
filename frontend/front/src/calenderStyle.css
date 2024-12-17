@@ -1,0 +1,88 @@
+/* react-calendar 테두리 없애기 */
+.react-calendar {
+    border: none !important; /* 캘린더 테두리 제거 */
+    box-shadow: none !important; /* 캘린더 그림자 제거 */
+    background-color: transparent !important; /* 배경 투명하게 설정 */
+    width: 500px !important;
+    height: auto !important;
+}
+
+.react-calendar__tile {
+    border: none; /* 셀의 테두리 제거 */
+    background-color: #f0f0f0;
+    font-size: 14px;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* 그림자 추가 */
+}
+
+
+/* 클릭된 날짜 스타일 */
+.react-calendar__tile--active {
+    background-color: #888 !important;
+    color: white;
+}
+/* 예약이 다 찬 날짜 스타일 */
+.react-calendar__tile.fully-booked {
+    background-color: #3700b3 !important;
+    color: white !important;
+}
+
+/* 날짜 hover 스타일 */
+.react-calendar__tile:hover {
+    background-color: #ddd;
+    transform: scale(1.05);
+}
+
+/* 선택된 날짜 스타일 */
+.react-calendar__tile--now {
+    background-color: #f0f0f0;
+    border: 2px solid #d9d8d9;
+    border-radius: 8px;
+}
+
+/* 주/일 요일 표시 스타일 */
+.react-calendar__month-view__weekdays {
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #333;
+}
+
+/* 주말의 색상 변경 */
+.react-calendar__month-view__days__day--weekend {
+    color: #f44336;
+}
+
+/* 캘린더 헤더 스타일 */
+.react-calendar__navigation button {
+    background-color: #d9d8d9;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 16px;
+}
+
+.react-calendar__navigation button:hover {
+    background-color: #3700b3;
+}
+
+.react-calendar__navigation button:disabled {
+    background-color: #d9d8d9;
+    cursor: not-allowed;
+}
+
+.react-calendar__month-view__days__day--weekend:hover {
+    background-color: #f0f0f0 !important;
+    transform: none !important;
+    cursor: default !important;
+}
+
+.react-calendar__tile--active {
+    background-color: #d9d8d9!important; /* 선택된 날짜 배경색을 #7100ee로 설정 */
+    color: white !important; /* 텍스트 색상은 흰색으로 설정 */ /* 원형 테두리 적용 (선택된 날짜가 둥글게 보이도록 설정) */
+}
+
+/* 날짜가 선택되었을 때, hover 추가 */
+.react-calendar__tile--active:hover {
+    background-color: #d9d8d9 !important; /* 선택된 날짜보다 더 진한 색으로 hover 시 설정 */
+    transform: scale(1.05);
+}
