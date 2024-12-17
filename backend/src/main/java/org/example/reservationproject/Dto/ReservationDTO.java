@@ -10,6 +10,9 @@ public class ReservationDTO {
     @NotBlank(message = "Name is required")
     private String name;
 
+    @NotBlank(message = "Location is required")
+    private String location;
+
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\d{10,11}$", message = "Invalid phone number")
     private String phoneNumber;

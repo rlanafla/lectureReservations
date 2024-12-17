@@ -19,9 +19,10 @@ public class ReservationService {
     @Transactional
     public ReservationDTO createReservation(ReservationDTO reservationDTO) {
         // 중복 예약 체크
-        reservationRepository.findByReservationDateAndTimeSlot(
+        reservationRepository.findByReservationDateAndTimeSlotAndLocation(
             reservationDTO.getReservationDate(),
-            reservationDTO.getTimeSlot()
+            reservationDTO.getTimeSlot(),
+            reservationDTO.getLocation()
         ).ifPresent(r -> {
             throw new RuntimeException("선택한 시간에 이미 예약이 있습니다.");
         });
@@ -54,11 +55,13 @@ public class ReservationService {
 
         // 중복 예약 체크 (날짜와 시간대가 변경된 경우)
         if (!existingReservation.getReservationDate().equals(reservationDTO.getReservationDate()) ||
-            !existingReservation.getTimeSlot().equals(reservationDTO.getTimeSlot())) {
+            !existingReservation.getTimeSlot().equals(reservationDTO.getTimeSlot()) ||
+            !existingReservation.getLocation().equals(reservationDTO.getLocation())) {
 
-            reservationRepository.findByReservationDateAndTimeSlot(
+            reservationRepository.findByReservationDateAndTimeSlotAndLocation(
                 reservationDTO.getReservationDate(),
-                reservationDTO.getTimeSlot()
+                reservationDTO.getTimeSlot(),
+                reservationDTO.getLocation()
             ).ifPresent(r -> {
                 throw new RuntimeException("선택한 시간에 이미 예약이 있습니다.");
             });
@@ -69,6 +72,7 @@ public class ReservationService {
         existingReservation.setPhoneNumber(reservationDTO.getPhoneNumber());
         existingReservation.setReservationDate(reservationDTO.getReservationDate());
         existingReservation.setTimeSlot(reservationDTO.getTimeSlot());
+        existingReservation.setLocation((reservationDTO.getLocation()));
 
         Reservation updatedReservation = reservationRepository.save(existingReservation);
         return reservationMapper.toDTO(updatedReservation);

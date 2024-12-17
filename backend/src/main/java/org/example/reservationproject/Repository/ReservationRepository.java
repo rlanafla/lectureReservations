@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-    Optional<Reservation> findByReservationDateAndTimeSlot(String date, String timeSlot);
+    Optional<Reservation> findByReservationDateAndTimeSlotAndLocation(String date, String timeSlot, String location);
 }
