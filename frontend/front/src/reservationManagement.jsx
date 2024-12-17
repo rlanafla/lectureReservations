@@ -20,7 +20,7 @@ const ReservationManagement = () => {
     useEffect(() => {
         const fetchReservations = async () => {
             try {
-                const response = await axios.get('http://localhost:80/api/reservations');
+                const response = await axios.get('http://54.180.163.230/api/reservations');
                 if (Array.isArray(response.data)) {
                     setReservedDates(response.data);
 
@@ -83,7 +83,7 @@ const ReservationManagement = () => {
     const handleConfirm = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:80/api/reservations', formData);
+            const response = await axios.post('http://54.180.163.230/api/reservations', formData);
             setDialogMessage('예약이 성공하였습니다.');
 
             // Update local reserved dates to reflect new reservation
