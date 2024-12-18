@@ -186,10 +186,14 @@ const ReservationManagement = () => {
                             name="phoneNumber"
                             value={formData.phoneNumber}
                             onChange={handleChange}
-                            inputProps={{ pattern: "^01[0-9]-[0-9]{3,4}-[0-9]{4}$", maxLength: 13 }}
-                            helperText="예시: 010-1234-5678"
-                            error={formData.phoneNumber && !/01[0-9]-[0-9]{3,4}-[0-9]{4}/.test(formData.phoneNumber)}
+                            inputProps={{ 
+                                pattern: "^01[0-9][0-9]{3,4}[0-9]{4}$", 
+                                maxLength: 11 
+                            }}
+                            helperText="예시: 01012345678"
+                            error={formData.phoneNumber && !/^01[0-9][0-9]{3,4}[0-9]{4}$/.test(formData.phoneNumber)}
                         />
+
                         <FormControl fullWidth>
                             <InputLabel>Location</InputLabel>
                             <Select
@@ -270,7 +274,7 @@ const ReservationManagement = () => {
                 <DialogTitle>예약 확인</DialogTitle>
                 <DialogContent>
                     <Typography variant="body1">
-                        Confirm with the following details:
+                        아래 예약 내용을 확인해주세요.
                         <br />
                         이름: {formData.name}
                         <br />
