@@ -17,7 +17,6 @@ const ReservationManagement = () => {
     const [dialogMessage, setDialogMessage] = useState('');
     const [openResultDialog, setOpenResultDialog] = useState(false);
 
-    
     useEffect(() => {
         const fetchReservations = async () => {
             try {
@@ -134,7 +133,7 @@ const ReservationManagement = () => {
     const isFormValid = () => {
         return (
             formData.name.trim() !== '' &&
-            /01[0-9]-[0-9]{3,4}-[0-9]{4}/.test(formData.phoneNumber) &&
+            /^01[0-9][0-9]{3,4}[0-9]{4}$/.test(formData.phoneNumber) && // 하이픈 없이 전화번호 유효성 검사
             formData.location !== '' &&
             formData.reservationDate !== ''
         );
@@ -288,17 +287,20 @@ const ReservationManagement = () => {
                     </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCancel} color="primary">Cancel</Button>
-                    <Button onClick={handleConfirm} color="primary">Confirm</Button>
+                    <Button onClick={handleCancel}>취소</Button>
+                    <Button onClick={handleConfirm} autoFocus>
+                        확인
+                    </Button>
                 </DialogActions>
             </Dialog>
             <Dialog open={openResultDialog} onClose={handleResultDialogClose}>
-                <DialogTitle>예약 결과</DialogTitle>
                 <DialogContent>
                     <Typography variant="body1">{dialogMessage}</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleResultDialogClose} color="primary">Close</Button>
+                    <Button onClick={handleResultDialogClose} autoFocus>
+                        확인
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Container>
